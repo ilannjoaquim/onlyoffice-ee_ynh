@@ -78,10 +78,5 @@ ram.runtime = "800M"
         "onlyoffice-documentserver-ee"  # Ajout du package ici
     ]
 
-    [resources.apt.extras]
-    packages = []
-    repo = "deb [signed-by=/usr/share/keyrings/onlyoffice.gpg] https://download.onlyoffice.com/repo/debian squeeze main"
-    key = "https://download.onlyoffice.com/GPG-KEY-ONLYOFFICE"
-
     [resources.database]
     type = "postgresql"
