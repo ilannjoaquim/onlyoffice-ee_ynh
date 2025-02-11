@@ -36,14 +36,50 @@ fi
 # Reconfigurer le dépôt avec la clé
 echo "deb [signed-by=/usr/share/keyrings/onlyoffice.gpg] https://download.onlyoffice.com/repo/debian squeeze main" | tee /etc/apt/sources.list.d/onlyoffice.list
 
-# Mettre à jour les dépôts
+# Activer le dépôt contrib (nécessaire pour ttf-mscorefonts-installer)
+echo "deb http://deb.debian.org/debian $(lsb_release -cs) contrib" | sudo tee /etc/apt/sources.list.d/contrib.list
+
+# Mettre à jour les dépôts UNE SEULE FOIS
 apt update
 
-# Installer les paquets requis
-apt install -y postgresql postgresql-contrib libstdc++6 rabbitmq-server \
-              libcurl4-openssl-dev redis-server libxml2 fonts-dejavu \
-              fonts-liberation fonts-crosextra-carlito fonts-takao-gothic \
-              fonts-opensymbol nginx-extras onlyoffice-documentserver-ee
+# Installer les polices Microsoft requises et autres dépendances
+sudo apt install -y ttf-mscorefonts-installer \
+    adduser \
+    imagemagick \
+    libcurl4 \
+    libfontconfig1 \
+    libgomp1 \
+    libicu-dev \
+    libpng-dev \
+    libstdc++6 \
+    libx11-6 \
+    libxext6 \
+    libxml2 \
+    libxslt1.1 \
+    libxtst6 \
+    nginx-extras \
+    postgresql \
+    postgresql-contrib \
+    rabbitmq-server \
+    redis-server \
+    unzip \
+    xfonts-75dpi \
+    xfonts-base
+
+# Vérifier si l'installation des paquets a réussi
+if [ $? -ne 0 ]; then
+    echo "❌ Erreur : L'installation des dépendances a échoué."
+    exit 1
+fi
+
+# Installer OnlyOffice DocumentServer Enterprise Edition
+apt install -y onlyoffice-documentserver-ee
+
+# Vérifier si l'installation a réussi
+if [ $? -ne 0 ]; then
+    echo "❌ Erreur : L'installation de OnlyOffice DocumentServer EE a échoué."
+    exit 1
+fi
 
 #=================================================
 # ADD A CONFIGURATION
