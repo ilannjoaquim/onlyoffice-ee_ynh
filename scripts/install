@@ -37,13 +37,13 @@ apt update
 echo "msttcorefonts msttcorefonts/accepted-mscorefonts-eula boolean true" | sudo debconf-set-selections
 
 # Installer les dépendances requises
-sudo apt install -y ttf-mscorefonts-installer \
-    postgresql postgresql-contrib \
+ynh_install_app_dependencies postgresql postgresql-contrib \
     libstdc++6 rabbitmq-server \
     libcurl4-openssl-dev redis-server \
     libxml2 fonts-dejavu fonts-liberation \
     fonts-crosextra-carlito fonts-takao-gothic \
-    fonts-opensymbol nginx-extras unzip xfonts-75dpi xfonts-base
+    fonts-opensymbol nginx-extras unzip xfonts-75dpi xfonts-base \
+    ttf-mscorefonts-installer
 
 # Vérifier si l'installation des paquets a réussi
 if [ $? -ne 0 ]; then
@@ -51,12 +51,40 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-# Installer OnlyOffice DocumentServer Enterprise Edition
-apt install -y onlyoffice-documentserver-ee
+#=================================================
+# CONFIGURE POSTGRESQL
+#=================================================
+ynh_script_progression --message="Configuring PostgreSQL for OnlyOffice..."
+
+# Définir les variables pour PostgreSQL
+db_name="onlyoffice"
+db_user=$db_name
+db_pwd=$(ynh_string_random --length=32)
+
+# Configurer la base PostgreSQL avec YunoHost
+ynh_psql_setup_db --db_user=$db_user --db_name=$db_name --db_pwd=$db_pwd
+
+# Configurer debconf pour informer l'installateur OnlyOffice
+echo onlyoffice-documentserver-ee onlyoffice/db-host string 127.0.0.1 | debconf-set-selections
+echo onlyoffice-documentserver-ee onlyoffice/db-user string $db_user | debconf-set-selections
+echo onlyoffice-documentserver-ee onlyoffice/db-pwd password $db_pwd | debconf-set-selections
+echo onlyoffice-documentserver-ee onlyoffice/db-name string $db_name | debconf-set-selections
+
+# Redémarrer PostgreSQL pour appliquer la config
+systemctl restart postgresql
+sleep 5
+
+#=================================================
+# INSTALL ONLYOFFICE
+#=================================================
+ynh_script_progression --message="Installing OnlyOffice EE..."
+
+# Installer OnlyOffice EE proprement
+ynh_add_app_dependencies --package="onlyoffice-documentserver-ee"
 
 # Vérifier si l'installation a réussi
 if [ $? -ne 0 ]; then
-    echo "❌ Erreur : L'installation de OnlyOffice DocumentServer EE a échoué."
+    echo "❌ Erreur : L'installation de OnlyOffice EE a échoué."
     exit 1
 fi
 
@@ -86,35 +114,19 @@ chmod -R o-rwx "$install_dir"
 chown -R onlyoffice:onlyoffice "$install_dir"
 
 #=================================================
-# CONFIGURE POSTGRESQL
-#=================================================
-ynh_script_progression --message="Configuring PostgreSQL for OnlyOffice..."
-
-sudo -u postgres psql -c "CREATE DATABASE onlyoffice;"
-sudo -u postgres psql -c "CREATE USER onlyoffice WITH PASSWORD 'onlyofficepassword';"
-sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE onlyoffice TO onlyoffice;"
-
-# Redémarrer PostgreSQL
-systemctl restart postgresql
-
-#=================================================
 # CONFIGURE SERVICES
 #=================================================
 
 ynh_script_progression --message="Configuring OnlyOffice Services..."
 
+# Ajouter les services à YunoHost
 for service in "ds-converter" "ds-docservice" "ds-metrics"; do
     yunohost service add "$service"
 done
 
-# Redémarrer les services OnlyOffice
-for service in "ds-converter" "ds-docservice" "ds-metrics"; do
-    if systemctl list-units --full --all | grep -q "$service"; then
-        ynh_systemd_action --action=restart --service_name="$service"
-    else
-        echo "⚠️ Service $service introuvable, vérifie l'installation."
-    fi
-done
+# Redémarrer les services OnlyOffice via supervisor
+supervisorctl reload
+sleep 30
 
 #=================================================
 # GENERATE FONTS
