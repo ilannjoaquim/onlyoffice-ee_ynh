@@ -25,7 +25,7 @@ ynh_script_progression --message="Install OnlyOffice Enterprise Edition..."
 mkdir -p -m 700 ~/.gnupg
 
 # Télécharger et installer la clé GPG
-curl -fsSL https://download.onlyoffice.com/GPG-KEY-ONLYOFFICE | gpg --no-default-keyring --keyring gnupg-ring:/tmp/onlyoffice.gpg --import
+curl -fsSL https://download.onlyoffice.com/GPG-KEY-ONLYOFFICE | gpg --dearmor -o /usr/share/keyrings/onlyoffice.gpg
 
 # Configurer les permissions
 chmod 644 /tmp/onlyoffice.gpg
@@ -43,9 +43,6 @@ apt install -y postgresql postgresql-contrib libstdc++6 rabbitmq-server \
               libcurl4-openssl-dev redis-server libxml2 fonts-dejavu \
               fonts-liberation fonts-crosextra-carlito fonts-takao-gothic \
               fonts-opensymbol nginx-extras onlyoffice-documentserver-ee
-
-_install_msfonts_deb
-_install_onlyoffice_deb
 
 #=================================================
 # ADD A CONFIGURATION
