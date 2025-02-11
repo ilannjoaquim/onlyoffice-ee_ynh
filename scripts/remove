@@ -55,9 +55,9 @@ ynh_secure_remove --file="/var/www/onlyoffice"
 ynh_secure_remove --file="/var/log/onlyoffice"
 
 #=================================================
-# REMOVE POSTGRESQL DATABASE (IF NO OTHER APP USES IT)
+# REMOVE POSTGRESQL DATABASE & SERVICE
 #=================================================
-ynh_script_progression --message="Removing PostgreSQL database if not used by other apps..."
+ynh_script_progression --message="Removing PostgreSQL database and service if not used by other apps..."
 
 # Vérifier si la base de données OnlyOffice existe
 db_exists=$(sudo -u postgres psql -tAc "SELECT 1 FROM pg_database WHERE datname='onlyoffice'")
@@ -76,6 +76,9 @@ if [ -z "$postgres_apps" ]; then
     apt remove --purge -y postgresql postgresql-contrib
     apt autoremove -y
     apt autoclean
+    sudo rm -rf /var/lib/postgresql
+    sudo rm -rf /etc/postgresql
+    sudo rm -rf /var/log/postgresql
     echo "✅ PostgreSQL removed because no other apps were using it."
 else
     echo "⚠️ PostgreSQL is still used by other apps. Keeping it installed."
