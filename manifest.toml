@@ -60,23 +60,5 @@ ram.runtime = "800M"
     [resources.ports]
     main.default = 8095
 
-    [resources.apt]
-    packages = [
-        "postgresql",
-        "postgresql-contrib",
-        "libstdc++6",
-        "rabbitmq-server",
-        "libcurl4-openssl-dev",
-        "redis-server",
-        "libxml2",
-        "fonts-dejavu",
-        "fonts-liberation",
-        "fonts-crosextra-carlito",
-        "fonts-takao-gothic",
-        "fonts-opensymbol",
-        "nginx-extras",
-        "onlyoffice-documentserver-ee"  # Ajout du package ici
-    ]
-
     [resources.database]
     type = "postgresql"
