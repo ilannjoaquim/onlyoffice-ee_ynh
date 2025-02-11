@@ -21,12 +21,22 @@ ynh_app_setting_set --app="$app" --key=jwt_secret --value="$jwt_secret"
 #=================================================
 ynh_script_progression --message="Install OnlyOffice Enterprise Edition..."
 
-# Ajout de la clé GPG
+# Créer le répertoire pour GPG
 mkdir -p -m 700 ~/.gnupg
+
+# Télécharger et installer la clé GPG
 curl -fsSL https://download.onlyoffice.com/GPG-KEY-ONLYOFFICE | gpg --no-default-keyring --keyring gnupg-ring:/tmp/onlyoffice.gpg --import
+
+# Configurer les permissions
 chmod 644 /tmp/onlyoffice.gpg
-sudo chown root:root /tmp/onlyoffice.gpg
-sudo mv /tmp/onlyoffice.gpg /usr/share/keyrings/onlyoffice.gpg
+chown root:root /tmp/onlyoffice.gpg
+mv /tmp/onlyoffice.gpg /usr/share/keyrings/onlyoffice.gpg
+
+# Reconfigurer le dépôt avec la clé
+echo "deb [signed-by=/usr/share/keyrings/onlyoffice.gpg] https://download.onlyoffice.com/repo/debian squeeze main" | tee /etc/apt/sources.list.d/onlyoffice.list
+
+# Mettre à jour les dépôts
+apt update
 
 _install_msfonts_deb
 _install_onlyoffice_deb
