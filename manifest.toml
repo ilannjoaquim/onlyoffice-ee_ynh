@@ -2,19 +2,18 @@
 
 packaging_format = 2
 
-id = "onlyoffice"
-name = "OnlyOffice"
-description.en = "Create and edit documents collaboratively"
-description.fr = "Créez et éditer des documents collaborativement"
+id = "onlyoffice-ee"
+name = "OnlyOffice EE"
+description.en = "OnlyOffice Enterprise Edition - Online office for editing and collaboration"
+description.fr = "OnlyOffice Enterprise Edition - Bureau en ligne pour l'édition et la collaboration"
 
 version = "8.3.0~ynh1"
 
-maintainers = []
+maintainers = ["ilannjoaquim"]
 
 [upstream]
-license = "GPL-3.0-or-later"
+license = "Proprietary"
 website = "https://www.onlyoffice.com"
-demo = "https://www.onlyoffice.com/fr/download-desktop.aspx"
 code = "https://github.com/ONLYOFFICE/DocumentServer"
 cpe = "cpe:2.3:a:onlyoffice:document_server"
 
@@ -51,14 +50,34 @@ ram.runtime = "800M"
 
 [resources]
     [resources.system_user]
+    name = "onlyoffice"
 
     [resources.install_dir]
+    default = "/var/www/onlyoffice"
 
     [resources.permissions]
     main.url = "/"
 
     [resources.ports]
     main.default = 8095
+
+    [resources.apt]
+    packages = [
+        "postgresql",
+        "postgresql-contrib",
+        "libstdc++6",
+        "rabbitmq-server",
+        "libcurl4-openssl-dev",
+        "redis-server",
+        "libxml2",
+        "fonts-dejavu",
+        "fonts-liberation",
+        "fonts-crosextra-carlito",
+        "fonts-takao-gothic",
+        "fonts-opensymbol",
+        "nginx-extras",
+        "onlyoffice-documentserver-ee"
+    ]
 
     [resources.database]
     type = "postgresql"
