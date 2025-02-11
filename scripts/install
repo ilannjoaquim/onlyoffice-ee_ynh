@@ -38,6 +38,12 @@ echo "deb [signed-by=/usr/share/keyrings/onlyoffice.gpg] https://download.onlyof
 # Mettre à jour les dépôts
 apt update
 
+# Installer les paquets requis
+apt install -y postgresql postgresql-contrib libstdc++6 rabbitmq-server \
+              libcurl4-openssl-dev redis-server libxml2 fonts-dejavu \
+              fonts-liberation fonts-crosextra-carlito fonts-takao-gothic \
+              fonts-opensymbol nginx-extras onlyoffice-documentserver-ee
+
 _install_msfonts_deb
 _install_onlyoffice_deb
 
