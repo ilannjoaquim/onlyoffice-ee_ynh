@@ -80,8 +80,10 @@ ram.runtime = "800M"
     [resources.sources.main]
     url = "deb [signed-by=/usr/share/keyrings/onlyoffice.gpg] https://download.onlyoffice.com/repo/debian squeeze main"
     key = "https://download.onlyoffice.com/GPG-KEY-ONLYOFFICE"
+    key_fingerprint = "8320CA65CB2DE8E5"
     suite = "squeeze"
     component = "main"
+    in_trusted_repos = true
     
     [resources.database]
     type = "postgresql"
