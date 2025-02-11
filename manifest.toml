@@ -79,8 +79,8 @@ ram.runtime = "800M"
     ]
 
     [resources.apt.extras]
-    sources.onlyoffice = "deb [signed-by=/usr/share/keyrings/onlyoffice.gpg] https://download.onlyoffice.com/repo/debian squeeze main"
-    keys.onlyoffice = "https://download.onlyoffice.com/GPG-KEY-ONLYOFFICE"
+    repo = "deb [signed-by=/usr/share/keyrings/onlyoffice.gpg] https://download.onlyoffice.com/repo/debian squeeze main"
+    key = "https://download.onlyoffice.com/GPG-KEY-ONLYOFFICE"
 
     [resources.database]
     type = "postgresql"
