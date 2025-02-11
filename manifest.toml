@@ -74,16 +74,13 @@ ram.runtime = "800M"
         "fonts-crosextra-carlito",
         "fonts-takao-gothic",
         "fonts-opensymbol",
-        "nginx-extras"
+        "nginx-extras",
+        "onlyoffice-documentserver-ee"  # Ajout du package ici
     ]
 
-    [resources.sources.main]
-    url = "deb [signed-by=/usr/share/keyrings/onlyoffice.gpg] https://download.onlyoffice.com/repo/debian squeeze main"
-    key = "https://download.onlyoffice.com/GPG-KEY-ONLYOFFICE"
-    key_fingerprint = "8320CA65CB2DE8E5"
-    suite = "squeeze"
-    component = "main"
-    in_trusted_repos = true
-    
+    [resources.apt.extras]
+    sources.onlyoffice = "deb [signed-by=/usr/share/keyrings/onlyoffice.gpg] https://download.onlyoffice.com/repo/debian squeeze main"
+    keys.onlyoffice = "https://download.onlyoffice.com/GPG-KEY-ONLYOFFICE"
+
     [resources.database]
     type = "postgresql"
