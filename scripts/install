@@ -25,7 +25,7 @@ ynh_script_progression --message="Install OnlyOffice Enterprise Edition..."
 mkdir -p -m 700 ~/.gnupg
 
 # Télécharger et installer la clé GPG
-curl -fsSL https://download.onlyoffice.com/GPG-KEY-ONLYOFFICE | gpg --dearmor -o /usr/share/keyrings/onlyoffice.gpg
+curl -fsSL https://download.onlyoffice.com/GPG-KEY-ONLYOFFICE | sudo tee /usr/share/keyrings/onlyoffice.gpg > /dev/null
 
 # Configurer les permissions
 chmod 644 /tmp/onlyoffice.gpg
