@@ -1,0 +1,100 @@
+#!/bin/bash
+
+#=================================================
+# IMPORT GENERIC HELPERS
+#=================================================
+
+source _common.sh
+source /usr/share/yunohost/helpers
+
+#=================================================
+# INITIALIZE AND STORE SETTINGS
+#=================================================
+
+admin_mail=$(ynh_user_get_info --username=$admin --key="mail")
+
+jwt_secret=$(ynh_string_random --length=32)
+ynh_app_setting_set --app="$app" --key=jwt_secret --value="$jwt_secret"
+
+#=================================================
+# INSTALL ONLYOFFICE
+#=================================================
+ynh_script_progression --message="Install OnlyOffice Enterprise Edition..."
+
+# Ajout de la clé GPG
+mkdir -p -m 700 ~/.gnupg
+curl -fsSL https://download.onlyoffice.com/GPG-KEY-ONLYOFFICE | gpg --no-default-keyring --keyring gnupg-ring:/tmp/onlyoffice.gpg --import
+chmod 644 /tmp/onlyoffice.gpg
+sudo chown root:root /tmp/onlyoffice.gpg
+sudo mv /tmp/onlyoffice.gpg /usr/share/keyrings/onlyoffice.gpg
+
+_install_msfonts_deb
+_install_onlyoffice_deb
+
+#=================================================
+# ADD A CONFIGURATION
+#=================================================
+ynh_script_progression --message="Adding $app's configuration file..."
+
+ynh_replace_string --target_file="/etc/onlyoffice/documentserver/default.json" \
+    --match_string="\"rejectUnauthorized\": true" \
+    --replace_string="\"rejectUnauthorized\": false" 
+ynh_store_file_checksum --file="/etc/onlyoffice/documentserver/default.json"
+
+#=================================================
+# INSTALL LICENSE
+#=================================================
+ynh_script_progression --message="Installing Enterprise Edition license..."
+
+# Copie du fichier de licence s'il existe
+if [ -f "../conf/license.lic" ]; then
+    ynh_script_progression --message="Installing license file..."
+    cp ../conf/license.lic /var/www/onlyoffice/Data/license.lic
+    chown onlyoffice:onlyoffice /var/www/onlyoffice/Data/license.lic
+fi
+
+#=================================================
+# REGENERATE FONTS
+#=================================================
+ynh_script_progression --message="Generating fonts..."
+
+/usr/bin/documentserver-generate-allfonts.sh 2>/dev/null
+
+#=================================================
+# SECURE FILES AND DIRECTORIES
+#=================================================
+
+# Set permissions to app files
+chmod 750 "$install_dir"
+chmod -R o-rwx "$install_dir"
+chown -R onlyoffice:onlyoffice "$install_dir"
+
+#=================================================
+# ADVERTISE SERVICE IN ADMIN PANEL
+#=================================================
+
+for service in "ds-converter" "ds-docservice" "ds-metrics"; do
+    yunohost service add "$service"
+done
+
+#=================================================
+# START SERVICES
+#=================================================
+
+for service in "ds-converter" "ds-docservice" "ds-metrics"; do
+    ynh_systemd_action --action=restart --service_name="$service"
+done
+
+#=================================================
+# NGINX CONFIGURATION
+#=================================================
+ynh_script_progression --message="Configuring NGINX web server..."
+
+# Create a dedicated NGINX config
+ynh_add_nginx_config
+
+#=================================================
+# END OF SCRIPT
+#=================================================
+
+ynh_script_progression --message="Installation of $app completed"
