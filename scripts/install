@@ -21,16 +21,17 @@ ynh_app_setting_set --app="$app" --key=jwt_secret --value="$jwt_secret"
 #=================================================
 ynh_script_progression --message="Install OnlyOffice Enterprise Edition..."
 
-# Créer le répertoire pour GPG
-mkdir -p -m 700 ~/.gnupg
+# Créer un répertoire sécurisé pour GPG (si nécessaire)
+mkdir -p -m 700 /root/.gnupg
 
-# Télécharger et installer la clé GPG
-curl -fsSL https://download.onlyoffice.com/GPG-KEY-ONLYOFFICE | sudo tee /usr/share/keyrings/onlyoffice.gpg > /dev/null
+# Télécharger et ajouter la clé GPG OnlyOffice proprement
+curl -fsSL https://download.onlyoffice.com/GPG-KEY-ONLYOFFICE | gpg --dearmor | sudo tee /usr/share/keyrings/onlyoffice.gpg > /dev/null
 
-# Configurer les permissions
-chmod 644 /tmp/onlyoffice.gpg
-chown root:root /tmp/onlyoffice.gpg
-mv /tmp/onlyoffice.gpg /usr/share/keyrings/onlyoffice.gpg
+# Vérifier si la clé GPG est bien installée
+if [ ! -f "/usr/share/keyrings/onlyoffice.gpg" ]; then
+    echo "❌ Erreur : La clé GPG OnlyOffice n'a pas été installée correctement."
+    exit 1
+fi
 
 # Reconfigurer le dépôt avec la clé
 echo "deb [signed-by=/usr/share/keyrings/onlyoffice.gpg] https://download.onlyoffice.com/repo/debian squeeze main" | tee /etc/apt/sources.list.d/onlyoffice.list
