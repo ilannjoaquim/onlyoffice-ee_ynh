@@ -1,4 +1,5 @@
 #!/bin/bash
+unset BASH_XTRACEFD
 
 #=================================================
 # IMPORT GENERIC HELPERS
@@ -25,7 +26,7 @@ ynh_script_progression --message="Installing OnlyOffice Enterprise Edition..."
 curl -fsSL https://download.onlyoffice.com/GPG-KEY-ONLYOFFICE | gpg --dearmor | sudo tee /usr/share/keyrings/onlyoffice.gpg > /dev/null
 
 # Ajouter le dépôt OnlyOffice EE
-echo "deb [signed-by=/usr/share/keyrings/onlyoffice.gpg] https://download.onlyoffice.com/repo/debian squeeze main" | sudo tee /etc/apt/sources.list.d/onlyoffice.list
+echo "deb [signed-by=/usr/share/keyrings/onlyoffice.gpg] https://download.onlyoffice.com/repo/debian bullseye main" | sudo tee /etc/apt/sources.list.d/onlyoffice.list
 
 # Activer le dépôt contrib (nécessaire pour ttf-mscorefonts-installer)
 echo "deb http://deb.debian.org/debian $(lsb_release -cs) contrib" | sudo tee /etc/apt/sources.list.d/contrib.list
