@@ -38,7 +38,7 @@ _install_onlyoffice_deb() {
 
     # Ajouter le dépôt OnlyOffice EE
     echo "📥 Ajout du dépôt OnlyOffice EE..."
-    echo "deb [signed-by=/usr/share/keyrings/onlyoffice.gpg] https://download.onlyoffice.com/repo/debian bullseye main" | sudo tee /etc/apt/sources.list.d/onlyoffice.list
+    echo "deb [signed-by=/usr/share/keyrings/onlyoffice.gpg] https://download.onlyoffice.com/repo/debian squeeze main" | sudo tee /etc/apt/sources.list.d/onlyoffice.list
 
     # Mettre à jour la liste des paquets
     echo "🔄 Mise à jour des paquets..."
