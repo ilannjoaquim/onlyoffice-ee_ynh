@@ -64,6 +64,10 @@ fi
 #=================================================
 ynh_script_progression --message="Configuring PostgreSQL for OnlyOffice..."
 
+# Créer le répertoire PostgreSQL s'il n'existe pas
+sudo mkdir -p /var/lib/postgresql
+sudo chown -R postgres:postgres /var/lib/postgresql
+
 # Définir les variables pour PostgreSQL
 db_name="onlyoffice"
 db_user=$db_name
