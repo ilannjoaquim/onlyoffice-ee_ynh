@@ -72,10 +72,3 @@ ram.runtime = "1000M"
 
     [resources.database]
     type = "postgresql"
-
-    [resources.repositories]
-    keys = ["https://download.onlyoffice.com/GPG-KEY-ONLYOFFICE"]
-    sources = [
-        "deb [signed-by=/usr/share/keyrings/onlyoffice.gpg] https://download.onlyoffice.com/repo/debian squeeze main",
-        "deb http://deb.debian.org/debian squeeze contrib"
-    ]
