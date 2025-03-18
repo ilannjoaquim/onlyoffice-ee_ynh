@@ -41,6 +41,9 @@ apt update
 # Accepter la licence des polices Microsoft automatiquement
 echo "msttcorefonts msttcorefonts/accepted-mscorefonts-eula boolean true" | sudo debconf-set-selections
 
+# Delete postgre au cas ou
+sudo apt-get remove --purge postgresql postgresql-contrib
+
 # Installer les dépendances requises
 ynh_install_app_dependencies postgresql postgresql-contrib \
     libstdc++6 rabbitmq-server \
