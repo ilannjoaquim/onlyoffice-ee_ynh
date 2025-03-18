@@ -23,10 +23,14 @@ ynh_app_setting_set --app="$app" --key=jwt_secret --value="$jwt_secret"
 ynh_script_progression --message="Installing OnlyOffice Enterprise Edition..."
 
 # Ajouter la clé GPG
-curl -fsSL https://download.onlyoffice.com/GPG-KEY-ONLYOFFICE | gpg --dearmor | sudo tee /usr/share/keyrings/onlyoffice.gpg > /dev/null
+mkdir -p -m 700 ~/.gnupg
+curl -fsSL https://download.onlyoffice.com/GPG-KEY-ONLYOFFICE | gpg --no-default-keyring --keyring gnupg-ring:/tmp/onlyoffice.gpg --import
+chmod 644 /tmp/onlyoffice.gpg
+sudo chown root:root /tmp/onlyoffice.gpg
+sudo mv /tmp/onlyoffice.gpg /usr/share/keyrings/onlyoffice.gpg
 
 # Ajouter le dépôt OnlyOffice EE
-echo "deb [signed-by=/usr/share/keyrings/onlyoffice.gpg] https://download.onlyoffice.com/repo/debian buster main" | sudo tee /etc/apt/sources.list.d/onlyoffice.list
+echo "deb [signed-by=/usr/share/keyrings/onlyoffice.gpg] https://download.onlyoffice.com/repo/debian squeeze main" | sudo tee /etc/apt/sources.list.d/onlyoffice.list
 
 # Activer le dépôt contrib (nécessaire pour ttf-mscorefonts-installer)
 echo "deb http://deb.debian.org/debian $(lsb_release -cs) contrib" | sudo tee /etc/apt/sources.list.d/contrib.list
