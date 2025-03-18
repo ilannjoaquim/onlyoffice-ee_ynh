@@ -18,14 +18,7 @@ ynh_psql_connect_as --user="$db_user" --password="$db_pwd" --database="$db_name"
 #=================================================
 # INSTALL ONLYOFFICE
 #=================================================
-ynh_script_progression --message="Install OnlyOffice Enterprise Edition..."
-
-# Ajout de la clé GPG
-mkdir -p -m 700 ~/.gnupg
-curl -fsSL https://download.onlyoffice.com/GPG-KEY-ONLYOFFICE | gpg --no-default-keyring --keyring gnupg-ring:/tmp/onlyoffice.gpg --import
-chmod 644 /tmp/onlyoffice.gpg
-sudo chown root:root /tmp/onlyoffice.gpg
-sudo mv /tmp/onlyoffice.gpg /usr/share/keyrings/onlyoffice.gpg
+ynh_script_progression --message="Install OnlyOffice..."
 
 _install_msfonts_deb
 _install_onlyoffice_deb
@@ -36,13 +29,12 @@ _install_onlyoffice_deb
 ynh_script_progression --message="Restoring the configuration..."
 
 ynh_restore_file --origin_path="/etc/onlyoffice"
-ynh_restore_file --origin_path="/var/www/onlyoffice/Data/license.lic"
 
 #=================================================
 # RESTORE THE CACHE
 #=================================================
 
-ynh_restore_file --origin_path="/var/lib/onlyoffice/documentserver-ee/App_Data/cache/files"
+ynh_restore_file --origin_path="/var/lib/onlyoffice/documentserver/App_Data/cache/files"
 
 #=================================================
 # REGENERATE FONTS
@@ -58,7 +50,7 @@ ynh_script_progression --message="Generating fonts..."
 # Set permissions to app files
 chmod 750 "$install_dir"
 chmod -R o-rwx "$install_dir"
-chown -R onlyoffice:onlyoffice "$install_dir"
+chown -R ds:ds "$install_dir"
 
 #=================================================
 # RESTORE SYSTEM CONFIGURATIONS

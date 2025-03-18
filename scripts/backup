@@ -20,8 +20,7 @@ ynh_print_info --message="Declaring files to be backed up..."
 ynh_backup --src_path="/etc/nginx/conf.d/$domain.d/$app.conf"
 
 ynh_backup --src_path="/etc/onlyoffice"
-ynh_backup --src_path="/var/www/onlyoffice/Data/license.lic"  # Fichier de licence Enterprise
-ynh_backup --src_path="/var/lib/onlyoffice/documentserver-ee/App_Data/cache/files" --not_mandatory
+ynh_backup --src_path="/var/lib/onlyoffice/documentserver/App_Data/cache/files" --not_mandatory
 
 ynh_backup --src_path="/var/log/$app/"
 

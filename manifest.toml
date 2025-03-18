@@ -3,47 +3,79 @@
 packaging_format = 2
 
 id = "onlyoffice-ee"
-name = "OnlyOffice EE"
-description.en = "OnlyOffice Enterprise Edition - Online office for editing and collaboration"
-description.fr = "OnlyOffice Enterprise Edition - Bureau en ligne pour l'édition et la collaboration"
+name = "OnlyOffice Enterprise Edition"
+description.en = "Enterprise Edition of OnlyOffice Docs with advanced features"
+description.fr = "Édition Entreprise de OnlyOffice Docs avec des fonctionnalités avancées"
 
-version = "8.3.0~ynh1"
+version = "8.3.1~ynh1"
 
-maintainers = ["ilannjoaquim"]
+maintainers = []
 
 [upstream]
-license = "Proprietary"
+license = "Propriétaire"
 website = "https://www.onlyoffice.com"
+demo = "https://www.onlyoffice.com/fr/download-desktop.aspx"
 code = "https://github.com/ONLYOFFICE/DocumentServer"
 cpe = "cpe:2.3:a:onlyoffice:document_server"
 
 [integration]
 yunohost = ">= 11.2"
-architectures = ["amd64", "arm64"]
+architectures = ["amd64"]
 multi_instance = false
+
 ldap = "not_relevant"
 sso = "not_relevant"
-disk = "2000M"
-ram.build = "800M"
-ram.runtime = "800M"
+
+disk = "3000M"
+ram.build = "1000M"
+ram.runtime = "1000M"
 
 [install]
     [install.domain]
     type = "domain"
 
-    [install.init_main_permission]
-    help.en = "You will only be able to connect OnlyOffice to Nextcloud if both apps are public!"
-    help.fr = "Nextcloud et OnlyOffice doivent être des applications publiques si vous voulez les connecter !"
-    type = "group"
-    default = "visitors"
-
-    [install.nextclouddomain]
-    ask.en = "The domain of the Nextcloud to connect to OnlyOffice"
-    ask.fr = "Le domaine du Nextcloud à connecter à OnlyOffice"
-    help.en = "Install the OnlyOffice connector to edit documents from Nextcloud."
-    help.fr = "Installez le connecteur OnlyOffice pour éditer des documents dans Nextcloud."
-    type = "string"
-    example = "yunohost.domain/nextcloud or nextcloud.yunohost.domain"
-
     [install.admin]
     type = "user"
+
+[resources]
+
+    [resources.system_user]
+
+    [resources.install_dir]
+
+    [resources.permissions]
+    main.url = "/"
+
+    [resources.ports]
+    main.default = 8095
+
+    [resources.apt]
+    packages = [
+        "postgresql",
+        "postgresql-contrib",
+        "libstdc++6",
+        "rabbitmq-server",
+        "libcurl4-openssl-dev",
+        "redis-server",
+        "libxml2",
+        "fonts-dejavu",
+        "fonts-liberation",
+        "fonts-crosextra-carlito",
+        "fonts-takao-gothic",
+        "fonts-opensymbol",
+        "nginx-extras",
+        "unzip",
+        "xfonts-75dpi",
+        "xfonts-base",
+        "ttf-mscorefonts-installer",
+    ]
+
+    [resources.database]
+    type = "postgresql"
+
+    [resources.repositories]
+    keys = ["https://download.onlyoffice.com/GPG-KEY-ONLYOFFICE"]
+    sources = [
+        "deb [signed-by=/usr/share/keyrings/onlyoffice.gpg] https://download.onlyoffice.com/repo/debian squeeze main",
+        "deb http://deb.debian.org/debian squeeze contrib"
+    ]

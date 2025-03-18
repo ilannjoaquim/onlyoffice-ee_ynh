@@ -1,16 +1,81 @@
-#:schema https://raw.githubusercontent.com/YunoHost/apps/master/schemas/tests.v1.schema.json
+#:schema https://raw.githubusercontent.com/YunoHost/apps/master/schemas/manifest.v2.schema.json
 
-test_format = 1.0
+packaging_format = 2
 
-[default]
+id = "onlyoffice-ee"
+name = "OnlyOffice Enterprise Edition"
+description.en = "Enterprise Edition of OnlyOffice Docs with advanced features"
+description.fr = "Édition Entreprise de OnlyOffice Docs avec des fonctionnalités avancées"
 
-    args.nextclouddomain = "nextcloud.tld"
+version = "8.3.1~ynh1"
 
-    exclude = ["change_url"]
+maintainers = []
 
-    [default.test_upgrade_from.6fad960ef104f0d96ebd38c3577330efd2c4ed57]
-    name = "8.0.1~ynh1"
-    args.domain = "domain.tld"
-    args.path = "/"
-    args.nextclouddomain = "nextcloud.tld"
-    args.admin = "package_checker"
+[upstream]
+license = "Propriétaire"
+website = "https://www.onlyoffice.com"
+demo = "https://www.onlyoffice.com/fr/download-desktop.aspx"
+code = "https://github.com/ONLYOFFICE/DocumentServer"
+cpe = "cpe:2.3:a:onlyoffice:document_server"
+
+[integration]
+yunohost = ">= 11.2"
+architectures = ["amd64"]
+multi_instance = false
+
+ldap = "not_relevant"
+sso = "not_relevant"
+
+disk = "3000M"
+ram.build = "1000M"
+ram.runtime = "1000M"
+
+[install]
+    [install.domain]
+    type = "domain"
+
+    [install.admin]
+    type = "user"
+
+[resources]
+
+    [resources.system_user]
+
+    [resources.install_dir]
+
+    [resources.permissions]
+    main.url = "/"
+
+    [resources.ports]
+    main.default = 8095
+
+    [resources.apt]
+    packages = [
+        "postgresql",
+        "postgresql-contrib",
+        "libstdc++6",
+        "rabbitmq-server",
+        "libcurl4-openssl-dev",
+        "redis-server",
+        "libxml2",
+        "fonts-dejavu",
+        "fonts-liberation",
+        "fonts-crosextra-carlito",
+        "fonts-takao-gothic",
+        "fonts-opensymbol",
+        "nginx-extras",
+        "unzip",
+        "xfonts-75dpi",
+        "xfonts-base",
+        "ttf-mscorefonts-installer",
+    ]
+
+    [resources.database]
+    type = "postgresql"
+
+    [resources.repositories]
+    keys = ["https://download.onlyoffice.com/GPG-KEY-ONLYOFFICE"]
+    sources = [
+        "deb [signed-by=/usr/share/keyrings/onlyoffice.gpg] https://download.onlyoffice.com/repo/debian bullseye main",
+        "deb http://deb.debian.org/debian bullseye contrib"
+    ]

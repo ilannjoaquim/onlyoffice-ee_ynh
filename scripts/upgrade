@@ -18,7 +18,7 @@ ynh_secure_remove --file="/etc/apt/sources.list.d/nodesource.list"
 #=================================================
 # CONFIGURE ONLYOFFICE
 #=================================================
-ynh_script_progression --message="Upgrading OnlyOffice Enterprise Edition..."
+ynh_script_progression --message="Upgrading OnlyOffice..."
 
 ynh_backup_if_checksum_is_different --file="/etc/onlyoffice/documentserver/default.json"
 
@@ -53,7 +53,7 @@ ynh_script_progression --message="Generating fonts..."
 # Set permissions to app files
 chmod 750 "$install_dir"
 chmod -R o-rwx "$install_dir"
-chown -R onlyoffice:onlyoffice "$install_dir"
+chown -R ds:ds "$install_dir"
 
 #=================================================
 # ADVERTISE SERVICE IN ADMIN PANEL

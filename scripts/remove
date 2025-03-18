@@ -8,89 +8,49 @@ source _common.sh
 source /usr/share/yunohost/helpers
 
 #=================================================
-# STOP & REMOVE SERVICES
+# REMOVE SERVICE FROM ADMIN PANEL
 #=================================================
-
-ynh_script_progression --message="Stopping and removing OnlyOffice services..."
 
 for service in "ds-converter" "ds-docservice" "ds-metrics"; do
-    if yunohost service status "$service" >/dev/null 2>&1; then
+    if yunohost service status "$service" >/dev/null 2>&1
+    then
         yunohost service remove "$service"
     fi
-    systemctl stop "$service" || true
-    systemctl disable "$service" || true
 done
 
-supervisorctl stop all || true
-supervisorctl reload || true
-
 #=================================================
-# REMOVE ONLYOFFICE PACKAGE
+# REMOVE ONLYOFFICE
 #=================================================
-ynh_script_progression --message="Removing OnlyOffice Enterprise Edition..."
+ynh_script_progression --message="Removing OnlyOffice..."
 
-# Supprimer le package proprement
-ynh_package_autopurge onlyoffice-documentserver-ee
+ynh_secure_remove --file=/var/lib/dpkg/info/onlyoffice-documentserver.prerm
 
-# Supprimer les fichiers de dpkg restants
-sudo rm -rf /var/lib/dpkg/info/onlyoffice-documentserver-ee.*
+# Here you will wonder what the fuck this is, and the answer is : this is a
+# fucking stupid hack because onlyoffice's dev deviced to put a "supervisorctl
+# update" inside their postrm, but when their postrm is ran, supervisorctl is
+# already removed ... so their removal fails which breaks dpkg.
+# So instead, we trick it with this stupid link to /bin/true which is removed
+# right after.
+#ln -s /bin/true /usr/local/bin/supervisorctl
+ynh_package_autopurge onlyoffice-documentserver
+
 dpkg --configure -a
-
-# Nettoyer les dépendances inutilisées
-apt autoremove -y
-apt autoclean
 
 #=================================================
 # REMOVE SYSTEM CONFIGURATIONS
 #=================================================
-ynh_script_progression --message="Removing system configurations related to $app..."
+ynh_script_progression --message="Removing system configurations related to $app..." --weight=1
 
-# Supprimer la configuration Nginx
+# Remove the dedicated NGINX config
 ynh_remove_nginx_config
 
-# Supprimer les fichiers de configuration OnlyOffice
+#=================================================
+# REMOVE VARIOUS FILES
+#=================================================
+
+# Remove a directory securely
 ynh_secure_remove --file="/etc/onlyoffice"
 ynh_secure_remove --file="/var/lib/onlyoffice"
-ynh_secure_remove --file="/var/www/onlyoffice"
-ynh_secure_remove --file="/var/log/onlyoffice"
-
-#=================================================
-# REMOVE POSTGRESQL DATABASE & SERVICE
-#=================================================
-ynh_script_progression --message="Removing PostgreSQL database and service if not used by other apps..."
-
-# Vérifier si la base de données OnlyOffice existe
-db_exists=$(sudo -u postgres psql -tAc "SELECT 1 FROM pg_database WHERE datname='onlyoffice'")
-if [ "$db_exists" == "1" ]; then
-    sudo -u postgres psql -c "DROP DATABASE onlyoffice;"
-    sudo -u postgres psql -c "DROP USER onlyoffice;"
-    echo "✅ PostgreSQL database 'onlyoffice' removed."
-fi
-
-# Vérifier si PostgreSQL est utilisé par d'autres apps YunoHost
-postgres_apps=$(yunohost app list | grep postgresql)
-if [ -z "$postgres_apps" ]; then
-    ynh_script_progression --message="No other apps are using PostgreSQL. Removing PostgreSQL..."
-    systemctl stop postgresql
-    systemctl disable postgresql
-    apt remove --purge -y postgresql postgresql-contrib
-    apt autoremove -y
-    apt autoclean
-    sudo rm -rf /var/lib/postgresql
-    sudo rm -rf /etc/postgresql
-    sudo rm -rf /var/log/postgresql
-    echo "✅ PostgreSQL removed because no other apps were using it."
-else
-    echo "⚠️ PostgreSQL is still used by other apps. Keeping it installed."
-fi
-
-#=================================================
-# FINAL CLEANUP
-#=================================================
-ynh_script_progression --message="Final cleanup..."
-
-dpkg --configure -a
-systemctl daemon-reexec
 
 #=================================================
 # END OF SCRIPT

@@ -1,5 +1,4 @@
 #!/bin/bash
-unset BASH_XTRACEFD
 
 #=================================================
 # IMPORT GENERIC HELPERS
@@ -18,150 +17,65 @@ jwt_secret=$(ynh_string_random --length=32)
 ynh_app_setting_set --app="$app" --key=jwt_secret --value="$jwt_secret"
 
 #=================================================
-# INSTALL ONLYOFFICE ENTERPRISE EDITION
-#=================================================
-ynh_script_progression --message="Installing OnlyOffice Enterprise Edition..."
-
-# Ajouter la clé GPG
-mkdir -p -m 700 ~/.gnupg
-curl -fsSL https://download.onlyoffice.com/GPG-KEY-ONLYOFFICE | gpg --no-default-keyring --keyring gnupg-ring:/tmp/onlyoffice.gpg --import
-chmod 644 /tmp/onlyoffice.gpg
-sudo chown root:root /tmp/onlyoffice.gpg
-sudo mv /tmp/onlyoffice.gpg /usr/share/keyrings/onlyoffice.gpg
-
-# Ajouter le dépôt OnlyOffice EE
-echo "deb [signed-by=/usr/share/keyrings/onlyoffice.gpg] https://download.onlyoffice.com/repo/debian squeeze main" | sudo tee /etc/apt/sources.list.d/onlyoffice.list
-
-# Activer le dépôt contrib (nécessaire pour ttf-mscorefonts-installer)
-echo "deb http://deb.debian.org/debian $(lsb_release -cs) contrib" | sudo tee /etc/apt/sources.list.d/contrib.list
-
-# Mettre à jour les dépôts
-apt update
-
-# Accepter la licence des polices Microsoft automatiquement
-echo "msttcorefonts msttcorefonts/accepted-mscorefonts-eula boolean true" | sudo debconf-set-selections
-
-# Delete postgre au cas ou
-sudo apt-get remove --purge postgresql postgresql-contrib
-
-# Installer les dépendances requises
-ynh_install_app_dependencies postgresql postgresql-contrib \
-    libstdc++6 rabbitmq-server \
-    libcurl4-openssl-dev redis-server \
-    libxml2 fonts-dejavu fonts-liberation \
-    fonts-crosextra-carlito fonts-takao-gothic \
-    fonts-opensymbol nginx-extras unzip xfonts-75dpi xfonts-base \
-    ttf-mscorefonts-installer
-
-# Vérifier si l'installation des paquets a réussi
-if [ $? -ne 0 ]; then
-    echo "❌ Erreur : L'installation des dépendances a échoué."
-    exit 1
-fi
-
-#=================================================
-# CONFIGURE POSTGRESQL
-#=================================================
-ynh_script_progression --message="Configuring PostgreSQL for OnlyOffice..."
-
-# Créer le répertoire PostgreSQL s'il n'existe pas
-sudo mkdir -p /var/lib/postgresql
-sudo chown -R postgres:postgres /var/lib/postgresql
-
-# Définir les variables pour PostgreSQL
-db_name="onlyoffice"
-db_user=$db_name
-db_pwd=$(ynh_string_random --length=32)
-
-# Configurer la base PostgreSQL avec YunoHost
-ynh_psql_setup_db --db_user=$db_user --db_name=$db_name --db_pwd=$db_pwd
-
-# Configurer debconf pour informer l'installateur OnlyOffice
-echo onlyoffice-documentserver-ee onlyoffice/db-host string 127.0.0.1 | debconf-set-selections
-echo onlyoffice-documentserver-ee onlyoffice/db-user string $db_user | debconf-set-selections
-echo onlyoffice-documentserver-ee onlyoffice/db-pwd password $db_pwd | debconf-set-selections
-echo onlyoffice-documentserver-ee onlyoffice/db-name string $db_name | debconf-set-selections
-
-# Redémarrer PostgreSQL pour appliquer la config
-systemctl restart postgresql
-sleep 5
-
-#=================================================
 # INSTALL ONLYOFFICE
 #=================================================
-ynh_script_progression --message="Installing OnlyOffice EE..."
+ynh_script_progression --message="Install OnlyOffice..."
 
-# Installer OnlyOffice EE proprement
-ynh_add_app_dependencies onlyoffice-documentserver-ee
-
-# Vérifier si l'installation a réussi
-if [ $? -ne 0 ]; then
-    echo "❌ Erreur : L'installation de OnlyOffice EE a échoué."
-    exit 1
-fi
+_install_msfonts_deb
+_install_onlyoffice_deb
 
 #=================================================
-# CONFIGURE ONLYOFFICE
+# ADD A CONFIGURATION
 #=================================================
-ynh_script_progression --message="Configuring OnlyOffice EE..."
+ynh_script_progression --message="Adding $app's configuration file..."
 
-# Modifier la configuration pour désactiver SSL interne
 ynh_replace_string --target_file="/etc/onlyoffice/documentserver/default.json" \
     --match_string="\"rejectUnauthorized\": true" \
-    --replace_string="\"rejectUnauthorized\": false"
-
+    --replace_string="\"rejectUnauthorized\": false" 
 ynh_store_file_checksum --file="/etc/onlyoffice/documentserver/default.json"
+
+#=================================================
+# REGENERATE FONTS
+#=================================================
+ynh_script_progression --message="Generating fonts..."
+
+/usr/bin/documentserver-generate-allfonts.sh 2>/dev/null
 
 #=================================================
 # SECURE FILES AND DIRECTORIES
 #=================================================
 
-# Définir le répertoire d'installation
-install_dir="/var/www/onlyoffice"
-mkdir -p "$install_dir"
-
-# Sécuriser les fichiers
+# Set permissions to app files
 chmod 750 "$install_dir"
 chmod -R o-rwx "$install_dir"
-chown -R onlyoffice:onlyoffice "$install_dir"
+chown -R ds:ds "$install_dir"
 
 #=================================================
-# CONFIGURE SERVICES
+# ADVERTISE SERVICE IN ADMIN PANEL
 #=================================================
 
-ynh_script_progression --message="Configuring OnlyOffice Services..."
-
-# Ajouter les services à YunoHost
 for service in "ds-converter" "ds-docservice" "ds-metrics"; do
     yunohost service add "$service"
 done
 
-# Redémarrer les services OnlyOffice via supervisor
-supervisorctl reload
-sleep 30
+#=================================================
+# START SERVICES
+#=================================================
+
+for service in "ds-converter" "ds-docservice" "ds-metrics"; do
+    ynh_systemd_action --action=restart --service_name="$service"
+done
 
 #=================================================
-# GENERATE FONTS
-#=================================================
-ynh_script_progression --message="Generating fonts..."
-
-sudo /usr/bin/documentserver-generate-allfonts.sh 2>/dev/null
-
-#=================================================
-# CONFIGURE NGINX
+# NGINX CONFIGURATION
 #=================================================
 ynh_script_progression --message="Configuring NGINX web server..."
 
-# Ajouter la configuration Nginx
+# Create a dedicated NGINX config
 ynh_add_nginx_config
 
 #=================================================
 # END OF SCRIPT
 #=================================================
 
-ynh_script_progression --message="Installation of OnlyOffice Enterprise Edition completed"
-
-# Vérifier si les services tournent bien
-for service in "ds-converter" "ds-docservice" "ds-metrics"; do
-    systemctl is-active --quiet "$service" && echo "✅ $service is running" || echo "❌ $service failed to start"
-done
+ynh_script_progression --message="Installation of $app completed"
