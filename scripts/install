@@ -85,7 +85,7 @@ sleep 5
 ynh_script_progression --message="Installing OnlyOffice EE..."
 
 # Installer OnlyOffice EE proprement
-ynh_add_app_dependencies --package="onlyoffice-documentserver-ee"
+ynh_add_app_dependencies onlyoffice-documentserver-ee
 
 # Vérifier si l'installation a réussi
 if [ $? -ne 0 ]; then
