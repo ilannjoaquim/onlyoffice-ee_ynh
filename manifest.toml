@@ -34,6 +34,20 @@ ram.runtime = "1000M"
     [install.domain]
     type = "domain"
 
+    [install.init_main_permission]
+    help.en = "You will only be able to connect OnlyOffice to Nextcloud if both apps are public!"
+    help.fr = "Nextcloud et OnlyOffice doivent être des applications publiques si vous voulez les connecter !"
+    type = "group"
+    default = "visitors"
+
+    [install.nextclouddomain]
+    ask.en = "The domain of the Nextcloud to connect to OnlyOffice"
+    ask.fr = "Le domaine du Nextcloud à connecter à OnlyOffice"
+    help.en = "Install the OnlyOffice connector to edit documents from Nextcloud."
+    help.fr = "Installez le connecteur OnlyOffice pour éditer des documents dans Nextcloud."
+    type = "string"
+    example = "yunohost.domain/nextcloud or nextcloud.yunohost.domain"
+
     [install.admin]
     type = "user"
 
